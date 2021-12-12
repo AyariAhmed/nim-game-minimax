@@ -48,7 +48,8 @@ cached_results = {}
 
 def minimaxSolver(game: NimGame, state: List[int], player: int) -> List[int]:
     def recurse(state: List[int], player: int):
-
+        global nb_calls
+        nb_calls += 1
         # recursion base cases
         if game.isEnd(state):
             # return the utility of the state, no more actions that can be taken
@@ -87,6 +88,7 @@ if __name__ == "__main__":
             cached_results = {}
             # player 1 <- player / player -1 <- computer
             taken_actions = []
+            nb_calls = 0
             if a == '1':
                 print('= You are max player =')
                 print('Player input should have the format : number-number , ex : 4-3')
@@ -106,6 +108,7 @@ if __name__ == "__main__":
                         print("You Lost!")
                         print("Taken actions :")
                         print(' -> '.join(map(str, taken_actions)))
+                        print(f"==> Number of developed nodes = {nb_calls}")
                         break
                     ai_action = minimaxSolver(game, state, 1)
                     state = ai_action
@@ -115,6 +118,7 @@ if __name__ == "__main__":
                         print("You Won!")
                         print("Taken actions :")
                         print(' -> '.join(map(str, taken_actions)))
+                        print(f"==> Number of developed nodes = {nb_calls}")
             elif a == '2':
                 while not game.isEnd(state):
                     print(f"--- Current game state is: {state} ---")
@@ -126,6 +130,7 @@ if __name__ == "__main__":
                         print("AI 1 Lost!")
                         print("Taken actions :")
                         print(' -> '.join(map(str, taken_actions)))
+                        print(f"==> Number of developed nodes = {nb_calls}")
                         break
                     print(f"--- Current game state is: {state} ---")
                     ai_action = minimaxSolver(game, state, 1)
@@ -136,6 +141,7 @@ if __name__ == "__main__":
                         print("AI 2 Won!")
                         print("Taken actions :")
                         print(' -> '.join(map(str, taken_actions)))
+                        print(f"==> Number of developed nodes = {nb_calls}")
             a = None
-        else:
+        elif a == 'q':
             break
