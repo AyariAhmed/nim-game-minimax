@@ -1,5 +1,4 @@
 from typing import List, Optional
-from random import choice
 
 
 class NimGame:
@@ -85,6 +84,7 @@ if __name__ == "__main__":
             n = int(input("-> stack size : "))
             game = NimGame(n)
             state = game.startState()
+            cached_results = {}
             # player 1 <- player / player -1 <- computer
             taken_actions = []
             if a == '1':
