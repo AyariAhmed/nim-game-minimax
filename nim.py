@@ -1,19 +1,20 @@
 from typing import List, Optional
+from math import inf
 
 
 class NimGame:
-    def __init__(self, n):
-        # initialize the game - only the number 'n' is required -> stack initial size
+    def __init__(self, n: int):
+        # initialize the game -> stack initial size
         self.n = [n]
 
     def startState(self):
         return self.n
 
-    def isEnd(self, state):
+    def isEnd(self, state: List[int]):
         # the game has reached the end state if there are no possible actions
         return True if len(self.possible_actions(state)) == 0 else False
 
-    def utility(self, state, player):
+    def utility(self, state: List[int], player: int):
         # The utility is +1 for the player having won and -1 for the losing player
         if self.isEnd(state):
             if player == 1:  # player max
@@ -37,7 +38,7 @@ class NimGame:
         return list(map(lambda l: sorted(l, reverse=True), result))
 
     # equal to the possible action taken
-    def successor(self, state, action):
+    def successor(self, state: List[int], action: List[int]):
         if action in self.possible_actions(state):
             return action
 
