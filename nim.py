@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Optional
+from random import choice
 
 
 class NimGame:
@@ -47,7 +48,6 @@ cached_results = {}
 
 
 def minimaxSolver(game: NimGame, state: List[int], player: int) -> List[int]:
-
     def recurse(state: List[int], player: int):
 
         # recursion base cases
@@ -73,35 +73,69 @@ def minimaxSolver(game: NimGame, state: List[int], player: int) -> List[int]:
 
 
 if __name__ == "__main__":
-    n = int(input("-> stack size : "))
-    game = NimGame(n)
-    state = game.startState()
-    # player 1 <- player / player -1 <- computer
-    taken_actions = []
-    print('= You are max player =')
+    a = Optional[str]
 
-    while not game.isEnd(state):
-        print(f"--- Current game state is: {state} ---")
-        action = [n]
-        valid_action = False
-        while not valid_action:
-            action = sorted(list(map(int, input('Make your choice : ').split('-'))), reverse=True)
-            valid_action = (sum(action) == n) and (action in game.possible_actions(state))
-            if not valid_action:
-                print('INVALID action, please respect the game rules and try again!')
+    while a not in ['1', '2', 'q']:
+        print('     Welcome to Nim game')
+        print('         1 - player vs AI')
+        print('         2 - AI vs AI')
+        print('         q - quit')
+        a = str(input("Make a choice ? "))
+        if a in ['1', '2']:
+            n = int(input("-> stack size : "))
+            game = NimGame(n)
+            state = game.startState()
+            # player 1 <- player / player -1 <- computer
+            taken_actions = []
+            if a == '1':
+                print('= You are max player =')
+                print('Player input should have the format : number-number , ex : 4-3')
+                while not game.isEnd(state):
+                    print(f"--- Current game state is: {state} ---")
+                    action = [n]
+                    valid_action = False
+                    while not valid_action:
+                        action = sorted(list(map(int, input('Make your choice : ').split('-'))), reverse=True)
+                        valid_action = (sum(action) == n) and (action in game.possible_actions(state))
+                        if not valid_action:
+                            print('INVALID action, please respect the game rules and try again!')
 
-        state = action
-        taken_actions.append(('Player', state))
-        if game.isEnd(state):
-            print("You Lost!")
-            print("Taken actions :")
-            print(' -> '.join(map(str, taken_actions)))
+                    state = action
+                    taken_actions.append(('Player', state))
+                    if game.isEnd(state):
+                        print("You Lost!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+                        break
+                    ai_action = minimaxSolver(game, state, 1)
+                    state = ai_action
+                    taken_actions.append(('Ai', state))
+                    print(f"Computer action is: {state}")
+                    if game.isEnd(state):
+                        print("You Won!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+            elif a == '2':
+                while not game.isEnd(state):
+                    print(f"--- Current game state is: {state} ---")
+                    action = [n]
+                    state = minimaxSolver(game, state, -1)
+                    taken_actions.append(('AI 1', state))
+                    print(f"AI 1 action is: {state}")
+                    if game.isEnd(state):
+                        print("AI 1 Lost!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+                        break
+                    print(f"--- Current game state is: {state} ---")
+                    ai_action = minimaxSolver(game, state, 1)
+                    state = ai_action
+                    taken_actions.append(('AI 2', state))
+                    print(f"AI 2 action is: {state}")
+                    if game.isEnd(state):
+                        print("AI 2 Won!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+            a = None
+        else:
             break
-        ai_action = minimaxSolver(game, state, 1)
-        state = ai_action
-        taken_actions.append(('Ai', state))
-        print(f"Computer action is: {state}")
-        if game.isEnd(state):
-            print("You Won!")
-            print("Taken actions :")
-            print(' -> '.join(map(str, taken_actions)))
