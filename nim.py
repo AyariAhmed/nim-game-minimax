@@ -1,5 +1,4 @@
 from typing import List, Optional
-from math import inf
 
 
 class NimGame:
@@ -25,7 +24,6 @@ class NimGame:
     @staticmethod
     def possible_actions(state: List[int]) -> List[List[int]]:
         result = []
-
         for index, element in enumerate(state):
             new_state = state[:]
             del new_state[index]
@@ -55,6 +53,7 @@ def minimaxSolver(game: NimGame, state: List[int], player: int) -> List[int]:
         if game.isEnd(state):
             # return the utility of the state, no more actions that can be taken
             return game.utility(state, player), state
+        # optimizing search with cached values
         if (tuple(state), player) in cached_results:
             return cached_results[(tuple(state), player)]
 
@@ -73,6 +72,35 @@ def minimaxSolver(game: NimGame, state: List[int], player: int) -> List[int]:
     return optimal_action
 
 
+def alphaBetaPruningSolver(game: NimGame, state: List[int], player: int) -> List[int]:
+    def recurse(state: List[int], player: int, alpha: int, beta: int):
+        global nb_calls
+        nb_calls += 1
+        global pruned_path
+        # recursion base cases
+        if game.isEnd(state):
+            # return the utility of the state, no more actions that can be taken
+            utility = game.utility(state, player)
+            return utility, state, (alpha, max(alpha, utility))[player == 1], (beta, min(beta, utility))[player == -1]
+
+        choices = []
+        # all possible choices, the player is toggled each time it is called (since Nim is a 2-player game)
+        for action in game.possible_actions(state):
+            if alpha < beta:
+                choices.append((recurse(game.successor(state, action), -1 * player, alpha, beta)[0], action,alpha,beta))
+            else:
+                pruned_path.append(action)
+
+        if player == 1:
+            tuple_value = max(choices)  # maximize over the expected utility
+        else:
+            tuple_value = min(choices)  # minimize over the expected utility
+        return tuple_value
+
+    _, optimal_action, _, _ = recurse(state, player, -10000, 10000)
+    return optimal_action
+
+
 if __name__ == "__main__":
     a = Optional[str]
 
@@ -80,9 +108,11 @@ if __name__ == "__main__":
         print('     Welcome to Nim game')
         print('         1 - player vs AI')
         print('         2 - AI vs AI')
+        print('         3 - player vs AI (alpha beta pruning)')
+        print('         4 - AI vs AI (alpha beta pruning)')
         print('         q - quit')
         a = str(input("Make a choice ? "))
-        if a in ['1', '2']:
+        if a in ['1', '2', '3', '4']:
             n = int(input("-> stack size : "))
             game = NimGame(n)
             state = game.startState()
@@ -142,6 +172,62 @@ if __name__ == "__main__":
                         print("AI 2 Won!")
                         print("Taken actions :")
                         print(' -> '.join(map(str, taken_actions)))
+                        print(f"==> Number of developed nodes = {nb_calls}")
+            elif a == '3':
+                print('= You are max player =')
+                print('Player input should have the format : number-number , ex : 4-3')
+                while not game.isEnd(state):
+                    print(f"--- Current game state is: {state} ---")
+                    action = [n]
+                    valid_action = False
+                    while not valid_action:
+                        action = sorted(list(map(int, input('Make your choice : ').split('-'))), reverse=True)
+                        valid_action = (sum(action) == n) and (action in game.possible_actions(state))
+                        if not valid_action:
+                            print('INVALID action, please respect the game rules and try again!')
+
+                    state = action
+                    taken_actions.append(('Player', state))
+                    if game.isEnd(state):
+                        print("You Lost!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+                        print(f"==> Number of developed nodes = {nb_calls}")
+                        break
+                    ai_action = alphaBetaPruningSolver(game, state, 1)
+                    state = ai_action
+                    taken_actions.append(('Ai', state))
+                    print(f"Computer action is: {state}")
+                    if game.isEnd(state):
+                        print("You Won!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+                        print(f"==> Number of developed nodes = {nb_calls}")
+            elif a == '4':
+                while not game.isEnd(state):
+                    pruned_path = []
+                    print(f"--- Current game state is: {state} ---")
+                    action = [n]
+                    state = alphaBetaPruningSolver(game, state, -1)
+                    taken_actions.append(('AI 1', state))
+                    print(f"AI 1 action is: {state}")
+                    if game.isEnd(state):
+                        print("AI 1 Lost!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+                        print(f'pruned paths {pruned_path}')
+                        print(f"==> Number of developed nodes = {nb_calls}")
+                        break
+                    print(f"--- Current game state is: {state} ---")
+                    ai_action = alphaBetaPruningSolver(game, state, 1)
+                    state = ai_action
+                    taken_actions.append(('AI 2', state))
+                    print(f"AI 2 action is: {state}")
+                    if game.isEnd(state):
+                        print("AI 2 Won!")
+                        print("Taken actions :")
+                        print(' -> '.join(map(str, taken_actions)))
+                        print(f'pruned paths {pruned_path}')
                         print(f"==> Number of developed nodes = {nb_calls}")
             a = None
         elif a == 'q':
